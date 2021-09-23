@@ -31,7 +31,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
+        return "";
     }
 
     private void bienvenida(){
