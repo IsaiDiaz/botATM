@@ -19,9 +19,13 @@ public class BotATM extends TelegramLongPollingBot {
     private Cliente clienteActual;
     private String nombreRegistro;
     private String pinRegistro;
+    private int estadoClienteActual;
 
     public BotATM(Banco banco){
         this.banco=banco;
+        for (Cliente cliente:banco.getClientes()) {
+            usuarios.put(cliente.getId(),3);
+        }
     }
 
     @Override
@@ -31,7 +35,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
+        return "";
     }
 
     private void bienvenida(){
@@ -54,6 +58,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     private void mensajeRegistroExitoso(){
         mensaje.setText("Te hemos registrado con exito, por favor, envie cualquier mensaje para continuar");
+        ejecutarMensaje();
     }
 
     private void ejecutarMensaje(){
@@ -76,17 +81,15 @@ public class BotATM extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName());
-        int estado;
         if(update.hasMessage()){
             Message mensajeDeUsuario=update.getMessage();
             String id= update.getMessage().getChatId().toString();
-            clienteActual= banco.buscarClientePorId(id);
-            if(clienteActual==null){
+            if(usuarios.get(id)==null){
                 usuarios.put(id,0);
             }
             mensaje.setChatId(id);
-            estado=usuarios.get(id);
-            switch (estado){
+            estadoClienteActual=usuarios.get(id);
+            switch (estadoClienteActual){
                 case 0:
                     mensajeRegistrarCliente();
                     usuarios.replace(id,1);
