@@ -35,7 +35,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "";
+        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
     }
 
     private void bienvenida(){
@@ -61,31 +61,50 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
+    private void ingresoAlSistema(){
+        mensaje.setText("Hola de nuevo "+clienteActual.getNombreCliente());
+        ejecutarMensaje();
+        mensaje.setText("Solo por seguridad ¿cuál es tu PIN?");
+        ejecutarMensaje();
+    }
+
+    private void pinIncorrecto(){
+        mensaje.setText("Lo siento, el codigo es incorrecto");
+        ejecutarMensaje();
+    }
+
+    private void despliegaMenu(){
+        mensaje.setText("Elige una opción:\n\n1. Ver Saldo.\n2. Retirar dinero.\n3. Depositar dinero.\n4. Crear cuenta.\n5. Salir.");
+        ejecutarMensaje();
+    }
+
     private void ejecutarMensaje(){
         try{
             execute(mensaje);
+            System.out.println("Respondiendo con: "+mensaje.getText());
         }catch(TelegramApiException e){
             e.printStackTrace();
         }
     }
 
-    private Cliente registroCliente(String id,String pin,String nombre){
+    private void registroCliente(String id,String pin,String nombre){
         Cliente cliente=new Cliente();
         cliente.setNombreCliente(nombre);
         cliente.setId(id);
         cliente.setPin(pin);
         banco.agregarCliente(cliente);
-        return cliente;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName());
+        System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName()+" id: "+update.getMessage().getChatId().toString());
         if(update.hasMessage()){
             Message mensajeDeUsuario=update.getMessage();
             String id= update.getMessage().getChatId().toString();
             if(usuarios.get(id)==null){
                 usuarios.put(id,0);
+            }else if(usuarios.get(id)>=3){
+                clienteActual= banco.buscarClientePorId(id);
             }
             mensaje.setChatId(id);
             estadoClienteActual=usuarios.get(id);
@@ -108,7 +127,22 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,3);
                     break;
                 case 3:
-
+                   ingresoAlSistema();
+                   usuarios.replace(id,4);
+                   break;
+                case 4:
+                    String pin=update.getMessage().getText();
+                    String pinCorrecto=clienteActual.getPin();
+                    if(pin.equals(pinCorrecto)){
+                        mensaje.setText("Bienvenido");
+                        ejecutarMensaje();
+                        despliegaMenu();
+                        usuarios.replace(id,5);
+                    }else{
+                        pinIncorrecto();
+                        ingresoAlSistema();
+                    }
+                    break;
             }
         }
     }

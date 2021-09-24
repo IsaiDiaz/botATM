@@ -18,9 +18,11 @@ public class App
     {
         Banco banco = new Banco("Banco de la Fortuna");
         Cliente cliente = new Cliente("Juan Perez","3333","");
+        Cliente yo= new Cliente("Jose Isai Diaz Soza","12345","809463279");
         Cuenta cuenta1= new Cuenta("Bolivianos","Caja de Ahorros","111122");
         cliente.agregarCuenta(cuenta1);
         banco.agregarCliente(cliente);
+        banco.agregarCliente(yo);
         try {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(new BotATM(banco));
