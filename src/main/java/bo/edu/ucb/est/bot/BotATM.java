@@ -1,8 +1,8 @@
 package bo.edu.ucb.est.bot;
 
-import bo.edu.ucb.est.iu.Mensaje;
 import bo.edu.ucb.est.modelo.Banco;
 import bo.edu.ucb.est.modelo.Cliente;
+import bo.edu.ucb.est.modelo.Cuenta;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -16,10 +16,11 @@ public class BotATM extends TelegramLongPollingBot {
     private Banco banco;
     private SendMessage mensaje= new SendMessage();
     private Map <String,Integer> usuarios=new HashMap<>();
+    private Map<String,Cuenta> cuentaM =new HashMap<>();
     private Cliente clienteActual;
+    private Cuenta cuentaActual;
     private String nombreRegistro;
     private String pinRegistro;
-    private int estadoClienteActual;
 
     public BotATM(Banco banco){
         this.banco=banco;
@@ -78,12 +79,37 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
+    private void bienvenidaCliente(){
+        mensaje.setText("Bienvenido");
+        ejecutarMensaje();
+    }
+
     private void ejecutarMensaje(){
         try{
             execute(mensaje);
             System.out.println("Respondiendo con: "+mensaje.getText());
         }catch(TelegramApiException e){
             e.printStackTrace();
+        }
+    }
+
+    private void error(){
+        mensaje.setText("Algo salio mal (es posible que este ingresando un valor no valido) por favor, intentelo de nuevo");
+        ejecutarMensaje();
+    }
+
+    private int validaIngreso(String opcion,int rango){
+        try{
+            int r=Integer.parseInt(opcion);
+            if(r>0 && r<=rango){
+                return r;
+            }else{
+                return -1;
+            }
+        }catch (Exception e){
+            error();
+            despliegaMenu();
+            return -1;
         }
     }
 
@@ -97,17 +123,20 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        int cuenta;
+        double monto;
+        Cuenta c;
         System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName()+" id: "+update.getMessage().getChatId().toString());
         if(update.hasMessage()){
             Message mensajeDeUsuario=update.getMessage();
             String id= update.getMessage().getChatId().toString();
             if(usuarios.get(id)==null){
                 usuarios.put(id,0);
-            }else if(usuarios.get(id)>=3){
+            }else {
                 clienteActual= banco.buscarClientePorId(id);
             }
             mensaje.setChatId(id);
-            estadoClienteActual=usuarios.get(id);
+            int estadoClienteActual = usuarios.get(id);
             switch (estadoClienteActual){
                 case 0:
                     mensajeRegistrarCliente();
@@ -131,17 +160,74 @@ public class BotATM extends TelegramLongPollingBot {
                    usuarios.replace(id,4);
                    break;
                 case 4:
-                    String pin=update.getMessage().getText();
+                    String pin=mensajeDeUsuario.getText();
                     String pinCorrecto=clienteActual.getPin();
                     if(pin.equals(pinCorrecto)){
-                        mensaje.setText("Bienvenido");
-                        ejecutarMensaje();
+                        bienvenidaCliente();
                         despliegaMenu();
                         usuarios.replace(id,5);
                     }else{
                         pinIncorrecto();
                         ingresoAlSistema();
                     }
+                    break;
+                case 5:
+                    int opcion=validaIngreso(mensajeDeUsuario.getText(),5);
+                    if(opcion>=1 && opcion<=3){
+                        mostrarCuentas();
+                        int estado=usuarios.get(id);
+                        usuarios.replace(id,estado+opcion);
+                    }else if(opcion==4){
+                        crearCuenta();
+                        usuarios.replace(id,9);
+                    }else if(opcion==5){
+                        usuarios.replace(id,3);
+                    }
+                    break;
+                case 6://ver saldo
+                    cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
+                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
+                    mostrarSaldo(cuentaActual.getSaldo());
+                    usuarios.replace(id,5);
+                    break;
+                case 7: //retiro
+                    cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
+                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
+                    cuentaM.put(id,cuentaActual);
+                    mensajeRetiro();
+                    usuarios.replace(id,10);
+                    break;
+                case 8: //deposito
+                    cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
+                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
+                    cuentaM.put(id,cuentaActual);
+                    mensajeDeposito();
+                    usuarios.replace(id,11);
+                    break;
+                case 9:
+                    mensajeCrearCuenta();
+                    usuarios.replace(id,12);
+                    break;
+                case 10://efectua retiro
+                    monto=Double.parseDouble(mensajeDeUsuario.getText());
+                    c=cuentaM.get(id);
+                    c.retirar(monto);
+                    exitoRetiro();
+                    usuarios.replace(id,5);
+                    break;
+                case 11://efectua deposito
+                    monto=Double.parseDouble(mensajeDeUsuario.getText());
+                    c=cuentaM.get(id);
+                    c.depositar(monto);
+                    exitoDeposito();
+                    usuarios.replace(id,5);
+                    break;
+                case 12://efectua creacion de cuenta
+                    String nuevaCuenta=mensajeDeUsuario.getText();
+                    crearCuenta();
+                    usuarios.replace(id,5);
+                default:
+                    usuarios.replace(id,5);
                     break;
             }
         }

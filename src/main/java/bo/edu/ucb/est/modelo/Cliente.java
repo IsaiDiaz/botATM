@@ -14,14 +14,14 @@ public class Cliente {
         this.nombreCliente = nombreCliente;
         this.pin = pin;
         this.id = id;
-        this.cuentas= new ArrayList<Cuenta>();
+        this.cuentas= new ArrayList<>();
     }
 
     public Cliente(){
         this.nombreCliente=null;
-        this.pin=pin;
+        this.pin=null;
         this.id=null;
-        this.cuentas= new ArrayList<Cuenta>();
+        this.cuentas= new ArrayList<>();
     }
 
     //getters y setters
@@ -59,5 +59,13 @@ public class Cliente {
 
     public void agregarCuenta(Cuenta cuenta){
         getCuentas().add(cuenta);
+    }
+
+    public String toString(){
+        return ("Nombre: "+getNombreCliente()+"\nId: "+getId()+"Cuentas: "+getCuentas().toString());
+    }
+
+    public Cuenta buscarCuenta(int indice){
+       return getCuentas().get(indice);
     }
 }
