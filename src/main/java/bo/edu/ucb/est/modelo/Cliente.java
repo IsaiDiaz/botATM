@@ -7,7 +7,7 @@ public class Cliente {
     private String nombreCliente;
     private String pin;
     private String id; // id del chat que usara el bot de telegram
-    private List<Cuenta> cuentas;
+    private final List<Cuenta> cuentas;
 
     //constructor de la clase
     public Cliente(String nombreCliente, String pin, String id) {
@@ -18,13 +18,14 @@ public class Cliente {
     }
 
     public Cliente(){
-        this.nombreCliente=null;
-        this.pin=null;
-        this.id=null;
+        this.nombreCliente="";
+        this.pin="";
+        this.id="";
         this.cuentas= new ArrayList<>();
     }
 
     //getters y setters
+
     public String getNombreCliente() {
         return nombreCliente;
     }
@@ -45,9 +46,6 @@ public class Cliente {
         return cuentas;
     }
 
-    public void setCuentas(List<Cuenta> cuentas) {
-        this.cuentas = cuentas;
-    }
 
     public String getId() {
         return id;
@@ -73,7 +71,7 @@ public class Cliente {
         String r="";
         int index=1;
         for (Cuenta cuenta:cuentas) {
-            r=r+index+":\n"+cuenta.toString();
+            r+=index+":\n"+cuenta.toString();
         }
         return r;
     }

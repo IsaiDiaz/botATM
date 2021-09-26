@@ -13,14 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BotATM extends TelegramLongPollingBot {
-    private Banco banco;
-    private SendMessage mensaje= new SendMessage();
-    private Map <String,Integer> usuarios=new HashMap<>();
-    private Map<String,Cuenta> cuentaM =new HashMap<>();
-    private Cliente clienteActual;
-    private Cuenta cuentaActual;
+    private final Banco banco;
+    private final SendMessage mensaje= new SendMessage();
+    private final Map <String,Integer> usuarios=new HashMap<>();
+    private final Map<String,Cuenta> cuentaMap =new HashMap<>();
+    //private Map <String,Cliente> clienteMap= new HashMap<>();
+    //private Cliente clienteActual;
     private String nombreRegistro;
-    private String pinRegistro;
 
     public BotATM(Banco banco){
         this.banco=banco;
@@ -36,7 +35,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "";
+        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
     }
 
     private void bienvenida(){
@@ -62,7 +61,7 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
-    private void ingresoAlSistema(){
+    private void ingresoAlSistema(Cliente clienteActual){
         mensaje.setText("Hola de nuevo "+clienteActual.getNombreCliente());
         ejecutarMensaje();
         mensaje.setText("Solo por seguridad ¿cuál es tu PIN?");
@@ -103,7 +102,7 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
-    private void crearCuenta(String nuevaCuenta) {
+    private void crearCuenta(String nuevaCuenta, Cliente clienteActual) {
         String [] datosDeCuenta=nuevaCuenta.split(",");
         clienteActual.agregarCuenta(new Cuenta(datosDeCuenta[0],datosDeCuenta[1],(banco.numeroDeCuentas()+1)+"",0));
         mensaje.setText("Cuenta creada con exito");
@@ -115,7 +114,7 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
-    private void mostrarCuentas(){
+    private void mostrarCuentas(Cliente clienteActual){
         mensaje.setText(clienteActual.mostrarCuentas());
         ejecutarMensaje();
     }
@@ -148,6 +147,7 @@ public class BotATM extends TelegramLongPollingBot {
         int cuenta;
         double monto;
         Cuenta c;
+        Cliente clienteActual = null;
         System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName()+" id: "+update.getMessage().getChatId().toString());
         if(update.hasMessage()){
             Message mensajeDeUsuario=update.getMessage();
@@ -170,15 +170,14 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,2);
                     break;
                 case 2:
-                    pinRegistro=mensajeDeUsuario.getText();
-                    registroCliente(id,pinRegistro,nombreRegistro);
-                    pinRegistro=null;
+                    String pinRegistro = mensajeDeUsuario.getText();
+                    registroCliente(id, pinRegistro,nombreRegistro);
                     nombreRegistro=null;
                     mensajeRegistroExitoso();
                     usuarios.replace(id,3);
                     break;
                 case 3:
-                   ingresoAlSistema();
+                   ingresoAlSistema(clienteActual);
                    usuarios.replace(id,4);
                    break;
                 case 4:
@@ -190,13 +189,13 @@ public class BotATM extends TelegramLongPollingBot {
                         usuarios.replace(id,5);
                     }else{
                         pinIncorrecto();
-                        ingresoAlSistema();
+                        ingresoAlSistema(clienteActual);
                     }
                     break;
                 case 5:
                     int opcion=validaIngreso(mensajeDeUsuario.getText(),5);
                     if(opcion>=1 && opcion<=3){
-                        mostrarCuentas();
+                        mostrarCuentas(clienteActual);
                         int estado=usuarios.get(id);
                         usuarios.replace(id,estado+opcion);
                     }else if(opcion==4){
@@ -208,39 +207,39 @@ public class BotATM extends TelegramLongPollingBot {
                     break;
                 case 6://ver saldo
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
+                    Cuenta cuentaActual = clienteActual.buscarCuenta(cuenta - 1);
                     mostrarSaldo(cuentaActual.getSaldo());
                     usuarios.replace(id,5);
                     break;
                 case 7: //retiro
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
-                    cuentaM.put(id,cuentaActual);
+                    cuentaActual =clienteActual.buscarCuenta(cuenta-1);
+                    cuentaMap.put(id, cuentaActual);
                     mensajeRetiro();
                     usuarios.replace(id,10);
                     break;
                 case 8: //deposito
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    cuentaActual=clienteActual.buscarCuenta(cuenta-1);
-                    cuentaM.put(id,cuentaActual);
+                    cuentaActual =clienteActual.buscarCuenta(cuenta-1);
+                    cuentaMap.put(id, cuentaActual);
                     mensajeDeposito();
                     usuarios.replace(id,11);
                     break;
                 case 9:
                     String nuevaCuenta=mensajeDeUsuario.getText();
-                    crearCuenta(nuevaCuenta);
+                    crearCuenta(nuevaCuenta,clienteActual);
                     usuarios.replace(id,5);
                     break;
                 case 10://efectua retiro
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
-                    c=cuentaM.get(id);
+                    c= cuentaMap.get(id);
                     c.retirar(monto);
                     exitoRetiro();
                     usuarios.replace(id,5);
                     break;
                 case 11://efectua deposito
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
-                    c=cuentaM.get(id);
+                    c= cuentaMap.get(id);
                     c.depositar(monto);
                     exitoDeposito();
                     usuarios.replace(id,5);
