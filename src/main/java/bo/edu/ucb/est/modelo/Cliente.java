@@ -68,4 +68,13 @@ public class Cliente {
     public Cuenta buscarCuenta(int indice){
        return getCuentas().get(indice);
     }
+
+    public String mostrarCuentas(){
+        String r="";
+        int index=1;
+        for (Cuenta cuenta:cuentas) {
+            r=r+index+":\n"+cuenta.toString();
+        }
+        return r;
+    }
 }

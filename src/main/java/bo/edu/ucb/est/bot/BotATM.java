@@ -98,6 +98,28 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
+    private void mostrarSaldo(double saldo) {
+        mensaje.setText("El saldo de la cuenta seleccionada es: "+saldo);
+        ejecutarMensaje();
+    }
+
+    private void crearCuenta(String nuevaCuenta) {
+        String [] datosDeCuenta=nuevaCuenta.split(",");
+        clienteActual.agregarCuenta(new Cuenta(datosDeCuenta[0],datosDeCuenta[1],(banco.numeroDeCuentas()+1)+"",0));
+        mensaje.setText("Cuenta creada con exito");
+        ejecutarMensaje();
+    }
+
+    private void mensajeCrearCuenta() {
+        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta de la siguiente manera: Bolivianos,Cuenta corriente");
+        ejecutarMensaje();
+    }
+
+    private void mostrarCuentas(){
+        mensaje.setText(clienteActual.mostrarCuentas());
+        ejecutarMensaje();
+    }
+
     private int validaIngreso(String opcion,int rango){
         try{
             int r=Integer.parseInt(opcion);
@@ -178,7 +200,7 @@ public class BotATM extends TelegramLongPollingBot {
                         int estado=usuarios.get(id);
                         usuarios.replace(id,estado+opcion);
                     }else if(opcion==4){
-                        crearCuenta();
+                        mensajeCrearCuenta();
                         usuarios.replace(id,9);
                     }else if(opcion==5){
                         usuarios.replace(id,3);
@@ -205,8 +227,9 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,11);
                     break;
                 case 9:
-                    mensajeCrearCuenta();
-                    usuarios.replace(id,12);
+                    String nuevaCuenta=mensajeDeUsuario.getText();
+                    crearCuenta(nuevaCuenta);
+                    usuarios.replace(id,5);
                     break;
                 case 10://efectua retiro
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
@@ -222,15 +245,36 @@ public class BotATM extends TelegramLongPollingBot {
                     exitoDeposito();
                     usuarios.replace(id,5);
                     break;
-                case 12://efectua creacion de cuenta
+                /*case 12://efectua creacion de cuenta
                     String nuevaCuenta=mensajeDeUsuario.getText();
                     crearCuenta();
-                    usuarios.replace(id,5);
+                    usuarios.replace(id,5);*/
                 default:
                     usuarios.replace(id,5);
                     break;
             }
         }
     }
+
+    private void exitoDeposito(){
+        mensaje.setText("Deposito exitoso, envie cualquier mensaje para continuar");
+        ejecutarMensaje();
+    }
+
+    private void exitoRetiro() {
+        mensaje.setText("Retiro exitoso, envie cualquier mensaje para continuar");
+        ejecutarMensaje();
+    }
+
+    private void mensajeDeposito() {
+        mensaje.setText("Por favor, ingrese el monto a depositar");
+        ejecutarMensaje();
+    }
+
+    private void mensajeRetiro() {
+        mensaje.setText("Por favor, ingrese el monto a retirar");
+        ejecutarMensaje();
+    }
+
 
 }

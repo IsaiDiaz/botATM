@@ -78,4 +78,11 @@ public class Cuenta {
         }
         return resultado;
     }
+
+    @Override
+    public String toString() {
+        return  "Moneda: " + moneda+"\n "+
+                "Tipo;'" + tipo + "\n" +
+                "NroCuenta='" + nroCuenta + "\n";
+    }
 }

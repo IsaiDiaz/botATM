@@ -50,4 +50,12 @@ public Banco( String nombre){
     }
     return null;
     }
+
+    public int numeroDeCuentas(){
+        int cant=0;
+        for (Cliente cliente:clientes) {
+            cant=cant+cliente.getCuentas().size();
+        }
+        return cant;
+    }
 }
