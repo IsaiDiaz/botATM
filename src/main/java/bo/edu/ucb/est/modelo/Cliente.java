@@ -71,7 +71,7 @@ public class Cliente {
         String r="";
         int index=1;
         for (Cuenta cuenta:cuentas) {
-            r+=index+":\n"+cuenta.toString();
+            r+="opcion:"+index+":\n"+cuenta.toString();
             index+=1;
         }
         return r;

@@ -38,113 +38,6 @@ public class BotATM extends TelegramLongPollingBot {
         return "";
     }
 
-    private void bienvenida(){
-        mensaje.setText("Bienvenido al "+banco.getNombre());
-        ejecutarMensaje();
-    }
-
-    private void mensajeRegistrarCliente(){
-        bienvenida();
-        mensaje.setText("He notado que aún no eres cliente, procedamos a registrarte");
-        ejecutarMensaje();
-        mensaje.setText("¿Cual es tu nombre completo?");
-        ejecutarMensaje();
-    }
-
-    private void mensajeRegistroPin(){
-        mensaje.setText("Por favor elige un Pin de seguridad, este te sera requerido cada que ingreses al sistema");
-        ejecutarMensaje();
-    }
-
-    private void mensajeRegistroExitoso(){
-        mensaje.setText("Te hemos registrado con exito, por favor, envie cualquier mensaje para continuar");
-        ejecutarMensaje();
-    }
-
-    private void ingresoAlSistema(Cliente clienteActual){
-        mensaje.setText("Hola de nuevo "+clienteActual.getNombreCliente());
-        ejecutarMensaje();
-        mensaje.setText("Solo por seguridad ¿cuál es tu PIN?");
-        ejecutarMensaje();
-    }
-
-    private void pinIncorrecto(){
-        mensaje.setText("Lo siento, el codigo es incorrecto");
-        ejecutarMensaje();
-    }
-
-    private void despliegaMenu(){
-        mensaje.setText("Elige una opción:\n\n1. Ver Saldo.\n2. Retirar dinero.\n3. Depositar dinero.\n4. Crear cuenta.\n5. Salir.");
-        ejecutarMensaje();
-    }
-
-    private void bienvenidaCliente(){
-        mensaje.setText("Bienvenid@");
-        ejecutarMensaje();
-    }
-
-    private void ejecutarMensaje(){
-        try{
-            execute(mensaje);
-            System.out.println("Respondiendo con: "+mensaje.getText());
-        }catch(TelegramApiException e){
-            e.printStackTrace();
-        }
-    }
-
-    private void error(){
-        mensaje.setText("Algo salio mal (es posible que este ingresando un valor no valido) por favor, intentelo de nuevo");
-        ejecutarMensaje();
-    }
-
-    private void mostrarSaldo(double saldo, String moneda) {
-        mensaje.setText("El saldo de la cuenta seleccionada es: "+saldo+" "+moneda);
-        ejecutarMensaje();
-    }
-
-    private void crearCuenta(String nuevaCuenta, Cliente clienteActual) {
-        String [] datosDeCuenta=nuevaCuenta.split(",");
-        clienteActual.agregarCuenta(new Cuenta(datosDeCuenta[0],datosDeCuenta[1],(banco.numeroDeCuentas()+1)+"",0));
-        mensaje.setText("Cuenta creada con exito");
-        ejecutarMensaje();
-    }
-
-    private void mensajeCrearCuenta() {
-        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente de la siguiente manera: Tipo de moneda,Tipo de cuenta\n"+
-                "Ejemplos\n"+
-                "Bolivianos,Cuenta corriente\n" +
-                "Dolares,Caja de ahorros\n"+
-                "por favor, respete el formato para evitar errores.");
-        ejecutarMensaje();
-    }
-
-    private void mostrarCuentas(Cliente clienteActual){
-        mensaje.setText("Seleccione una cuenta:\n"+clienteActual.mostrarCuentas());
-        ejecutarMensaje();
-    }
-
-    private int validaIngreso(String opcion,int rango){
-        try{
-            int r=Integer.parseInt(opcion);
-            if(r>0 && r<=rango){
-                return r;
-            }else{
-                return -1;
-            }
-        }catch (Exception e){
-            error();
-            return -1;
-        }
-    }
-
-    private void registroCliente(String id,String pin,String nombre){
-        Cliente cliente=new Cliente();
-        cliente.setNombreCliente(nombre);
-        cliente.setId(id);
-        cliente.setPin(pin);
-        banco.agregarCliente(cliente);
-    }
-
     @Override
     public void onUpdateReceived(Update update) {
         int cuenta;
@@ -318,7 +211,7 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void salida() {
-        mensaje.setText("Hasta luego");
+        mensaje.setText("Gracias por utilizar el servicio de BotATM !Hasta la proxima¡");
         ejecutarMensaje();
     }
 
@@ -347,5 +240,111 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
+    private void bienvenida(){
+        mensaje.setText("Bienvenido al "+banco.getNombre());
+        ejecutarMensaje();
+    }
+
+    private void mensajeRegistrarCliente(){
+        bienvenida();
+        mensaje.setText("He notado que aún no eres cliente, procedamos a registrarte");
+        ejecutarMensaje();
+        mensaje.setText("¿Cual es tu nombre completo?");
+        ejecutarMensaje();
+    }
+
+    private void mensajeRegistroPin(){
+        mensaje.setText("Por favor elige un Pin de seguridad, este te sera requerido cada que ingreses al sistema");
+        ejecutarMensaje();
+    }
+
+    private void mensajeRegistroExitoso(){
+        mensaje.setText("Te hemos registrado con exito, por favor, envie cualquier mensaje para continuar");
+        ejecutarMensaje();
+    }
+
+    private void ingresoAlSistema(Cliente clienteActual){
+        mensaje.setText("Hola de nuevo "+clienteActual.getNombreCliente());
+        ejecutarMensaje();
+        mensaje.setText("Solo por seguridad ¿cuál es tu PIN?");
+        ejecutarMensaje();
+    }
+
+    private void pinIncorrecto(){
+        mensaje.setText("Lo siento, el codigo es incorrecto");
+        ejecutarMensaje();
+    }
+
+    private void despliegaMenu(){
+        mensaje.setText("Elige una opción:\n\n1. Ver Saldo.\n2. Retirar dinero.\n3. Depositar dinero.\n4. Crear cuenta.\n5. Salir.");
+        ejecutarMensaje();
+    }
+
+    private void bienvenidaCliente(){
+        mensaje.setText("Bienvenid@");
+        ejecutarMensaje();
+    }
+
+    private void ejecutarMensaje(){
+        try{
+            execute(mensaje);
+            System.out.println("Respondiendo con: "+mensaje.getText());
+        }catch(TelegramApiException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void error(){
+        mensaje.setText("Algo salio mal (es posible que este ingresando un valor no valido) por favor, intentelo de nuevo");
+        ejecutarMensaje();
+    }
+
+    private void mostrarSaldo(double saldo, String moneda) {
+        mensaje.setText("El saldo de la cuenta seleccionada es: "+saldo+" "+moneda);
+        ejecutarMensaje();
+    }
+
+    private void crearCuenta(String nuevaCuenta, Cliente clienteActual) {
+        String [] datosDeCuenta=nuevaCuenta.split(",");
+        clienteActual.agregarCuenta(new Cuenta(datosDeCuenta[0],datosDeCuenta[1],(banco.numeroDeCuentas()+1)+"",0));
+        mensaje.setText("Cuenta creada con exito");
+        ejecutarMensaje();
+    }
+
+    private void mensajeCrearCuenta() {
+        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente de la siguiente manera: Tipo de moneda,Tipo de cuenta\n"+
+                "Ejemplos\n"+
+                "Bolivianos,Cuenta corriente\n" +
+                "Dolares,Caja de ahorros\n"+
+                "por favor, respete el formato para evitar errores.");
+        ejecutarMensaje();
+    }
+
+    private void mostrarCuentas(Cliente clienteActual){
+        mensaje.setText("Seleccione una cuenta:\n"+clienteActual.mostrarCuentas());
+        ejecutarMensaje();
+    }
+
+    private int validaIngreso(String opcion,int rango){
+        try{
+            int r=Integer.parseInt(opcion);
+            if(r>0 && r<=rango){
+                return r;
+            }else{
+                return -1;
+            }
+        }catch (Exception e){
+            error();
+            return -1;
+        }
+    }
+
+    private void registroCliente(String id,String pin,String nombre){
+        Cliente cliente=new Cliente();
+        cliente.setNombreCliente(nombre);
+        cliente.setId(id);
+        cliente.setPin(pin);
+        banco.agregarCliente(cliente);
+    }
 
 }
