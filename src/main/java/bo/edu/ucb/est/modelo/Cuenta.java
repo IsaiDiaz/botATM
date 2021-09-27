@@ -81,8 +81,8 @@ public class Cuenta {
 
     @Override
     public String toString() {
-        return  "Moneda: " + moneda+"\n "+
-                "Tipo;'" + tipo + "\n" +
-                "NroCuenta='" + nroCuenta + "\n";
+        return  "Moneda: "+moneda+"\n"+
+                "Tipo: "+tipo +"\n"+
+                "NroCuenta: "+nroCuenta+"\n";
     }
 }

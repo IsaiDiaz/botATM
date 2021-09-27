@@ -35,7 +35,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
+        return "";
     }
 
     private void bienvenida(){
@@ -79,7 +79,7 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void bienvenidaCliente(){
-        mensaje.setText("Bienvenido");
+        mensaje.setText("Bienvenid@");
         ejecutarMensaje();
     }
 
@@ -97,8 +97,8 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
-    private void mostrarSaldo(double saldo) {
-        mensaje.setText("El saldo de la cuenta seleccionada es: "+saldo);
+    private void mostrarSaldo(double saldo, String moneda) {
+        mensaje.setText("El saldo de la cuenta seleccionada es: "+saldo+" "+moneda);
         ejecutarMensaje();
     }
 
@@ -110,12 +110,16 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void mensajeCrearCuenta() {
-        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta de la siguiente manera: Bolivianos,Cuenta corriente");
+        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente de la siguiente manera: Tipo de moneda,Tipo de cuenta\n"+
+                "Ejemplos\n"+
+                "Bolivianos,Cuenta corriente\n" +
+                "Dolares,Caja de ahorros\n"+
+                "por favor, respete el formato para evitar errores.");
         ejecutarMensaje();
     }
 
     private void mostrarCuentas(Cliente clienteActual){
-        mensaje.setText(clienteActual.mostrarCuentas());
+        mensaje.setText("Seleccione una cuenta:\n"+clienteActual.mostrarCuentas());
         ejecutarMensaje();
     }
 
@@ -129,7 +133,6 @@ public class BotATM extends TelegramLongPollingBot {
             }
         }catch (Exception e){
             error();
-            despliegaMenu();
             return -1;
         }
     }
@@ -147,6 +150,7 @@ public class BotATM extends TelegramLongPollingBot {
         int cuenta;
         double monto;
         Cuenta c;
+        Cuenta cuentaActual;
         Cliente clienteActual = null;
         System.out.println("LLego mensaje: "+update.getMessage().getText()+" de "+update.getMessage().getFrom().getFirstName()+" id: "+update.getMessage().getChatId().toString());
         if(update.hasMessage()){
@@ -160,6 +164,7 @@ public class BotATM extends TelegramLongPollingBot {
             mensaje.setChatId(id);
             int estadoClienteActual = usuarios.get(id);
             switch (estadoClienteActual){
+                //registro de nuevo cliente
                 case 0:
                     mensajeRegistrarCliente();
                     usuarios.replace(id,1);
@@ -176,12 +181,16 @@ public class BotATM extends TelegramLongPollingBot {
                     mensajeRegistroExitoso();
                     usuarios.replace(id,3);
                     break;
-                case 3:
-                   ingresoAlSistema(clienteActual);
-                   usuarios.replace(id,4);
-                   break;
-                case 4:
+                    //Fin de registro de nuevo cliente
+                //ingreso al sistema
+                case 3://Saluda al cliente y solicita PIN para acceder
+                    assert clienteActual != null;
+                    ingresoAlSistema(clienteActual);
+                    usuarios.replace(id,4);
+                    break;
+                case 4://Verifica PIN, si es correcto despliega el menu, de otra forma reinicia la verificacion
                     String pin=mensajeDeUsuario.getText();
+                    assert clienteActual != null;
                     String pinCorrecto=clienteActual.getPin();
                     if(pin.equals(pinCorrecto)){
                         bienvenidaCliente();
@@ -192,57 +201,99 @@ public class BotATM extends TelegramLongPollingBot {
                         ingresoAlSistema(clienteActual);
                     }
                     break;
-                case 5:
+                case 5://Recibe la opcion seleccionada por el cliente y actualiza su estado para procesarla
                     int opcion=validaIngreso(mensajeDeUsuario.getText(),5);
                     if(opcion>=1 && opcion<=3){
-                        mostrarCuentas(clienteActual);
-                        int estado=usuarios.get(id);
-                        usuarios.replace(id,estado+opcion);
+                        if(clienteActual.cantidadCuentas()>0) {
+                            assert clienteActual != null;
+                            mostrarCuentas(clienteActual);
+                            int estado = usuarios.get(id);
+                            usuarios.replace(id, estado + opcion);
+                        }else{
+                            clienteSinCuentas();
+                            despliegaMenu();
+                        }
                     }else if(opcion==4){
                         mensajeCrearCuenta();
                         usuarios.replace(id,9);
                     }else if(opcion==5){
+                        salida();
                         usuarios.replace(id,3);
+                    } else{
+                        error();
+                        despliegaMenu();
                     }
                     break;
-                case 6://ver saldo
+                case 6://Muestra cuentas para seleccionar una y ver su saldo
+                    assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    Cuenta cuentaActual = clienteActual.buscarCuenta(cuenta - 1);
-                    mostrarSaldo(cuentaActual.getSaldo());
-                    usuarios.replace(id,5);
+                    if(cuenta>0) {
+                        cuentaActual = clienteActual.buscarCuenta(cuenta - 1);
+                        mostrarSaldo(cuentaActual.getSaldo(),cuentaActual.getMoneda());
+                        usuarios.replace(id, 5);
+                        despliegaMenu();
+                    }else{
+                        cuentaNoValida();
+                        despliegaMenu();
+                        usuarios.replace(id,5);
+                    }
                     break;
-                case 7: //retiro
+                case 7: //Muestra cuentas para realizar un retiro
+                    assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    cuentaActual =clienteActual.buscarCuenta(cuenta-1);
-                    cuentaMap.put(id, cuentaActual);
-                    mensajeRetiro();
-                    usuarios.replace(id,10);
+                    if(cuenta>0) {
+                        cuentaActual = clienteActual.buscarCuenta(cuenta - 1);
+                        cuentaMap.put(id, cuentaActual);
+                        mensajeRetiro();
+                        usuarios.replace(id, 10);
+                    }else{
+                        cuentaNoValida();
+                        despliegaMenu();
+                        usuarios.replace(id,5);
+                    }
                     break;
-                case 8: //deposito
+                case 8: //Muestra cuentas para realizar un deposito
+                    assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
-                    cuentaActual =clienteActual.buscarCuenta(cuenta-1);
-                    cuentaMap.put(id, cuentaActual);
-                    mensajeDeposito();
-                    usuarios.replace(id,11);
+                    if(cuenta>0){
+                        cuentaActual =clienteActual.buscarCuenta(cuenta-1);
+                        cuentaMap.put(id, cuentaActual);
+                        mensajeDeposito();
+                        usuarios.replace(id,11);
+                    }else{
+                        cuentaNoValida();
+                        despliegaMenu();
+                        usuarios.replace(id,5);
+                    }
                     break;
-                case 9:
+                case 9://crea una cuenta nueva
                     String nuevaCuenta=mensajeDeUsuario.getText();
+                    assert clienteActual != null;
                     crearCuenta(nuevaCuenta,clienteActual);
                     usuarios.replace(id,5);
+                    despliegaMenu();
                     break;
                 case 10://efectua retiro
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
                     c= cuentaMap.get(id);
-                    c.retirar(monto);
-                    exitoRetiro();
+                    if(c.retirar(monto)){
+                        exitoRetiro();
+                    }else{
+                        falloTransaccion();
+                    }
                     usuarios.replace(id,5);
+                    despliegaMenu();
                     break;
                 case 11://efectua deposito
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
                     c= cuentaMap.get(id);
-                    c.depositar(monto);
-                    exitoDeposito();
+                    if(c.depositar(monto)){
+                        exitoDeposito();
+                    }else{
+                        falloTransaccion();
+                    }
                     usuarios.replace(id,5);
+                    despliegaMenu();
                     break;
                 /*case 12://efectua creacion de cuenta
                     String nuevaCuenta=mensajeDeUsuario.getText();
@@ -250,28 +301,49 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,5);*/
                 default:
                     usuarios.replace(id,5);
+                    despliegaMenu();
                     break;
             }
         }
     }
 
+    private void cuentaNoValida() {
+        mensaje.setText("La cuenta seleccionada no existe");
+        ejecutarMensaje();
+    }
+
+    private void falloTransaccion() {
+        mensaje.setText("Fallo en la transacción");
+        ejecutarMensaje();
+    }
+
+    private void salida() {
+        mensaje.setText("Hasta luego");
+        ejecutarMensaje();
+    }
+
+    private void clienteSinCuentas() {
+        mensaje.setText("Usted no tiene cuentas registradas, puede crear una cuenta en la opcion 4 del menú.");
+        ejecutarMensaje();
+    }
+
     private void exitoDeposito(){
-        mensaje.setText("Deposito exitoso, envie cualquier mensaje para continuar");
+        mensaje.setText("Deposito exitoso");
         ejecutarMensaje();
     }
 
     private void exitoRetiro() {
-        mensaje.setText("Retiro exitoso, envie cualquier mensaje para continuar");
+        mensaje.setText("Retiro exitoso");
         ejecutarMensaje();
     }
 
     private void mensajeDeposito() {
-        mensaje.setText("Por favor, ingrese el monto a depositar");
+        mensaje.setText("Por favor, ingrese el monto a depositar. No es necesario especificar el tipo de moneda, envia solamente la cantidad como un numero");
         ejecutarMensaje();
     }
 
     private void mensajeRetiro() {
-        mensaje.setText("Por favor, ingrese el monto a retirar");
+        mensaje.setText("Por favor, ingrese el monto a retirar. No es necesario especificar el tipo de moneda, envia solamente la cantidad como un numero");
         ejecutarMensaje();
     }
 

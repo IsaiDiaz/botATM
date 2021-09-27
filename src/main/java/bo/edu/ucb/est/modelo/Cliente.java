@@ -72,7 +72,12 @@ public class Cliente {
         int index=1;
         for (Cuenta cuenta:cuentas) {
             r+=index+":\n"+cuenta.toString();
+            index+=1;
         }
         return r;
+    }
+
+    public int cantidadCuentas(){
+        return getCuentas().size();
     }
 }
