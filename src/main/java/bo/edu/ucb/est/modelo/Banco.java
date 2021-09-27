@@ -54,7 +54,7 @@ public Banco( String nombre){
     public int numeroDeCuentas(){
         int cant=0;
         for (Cliente cliente:clientes) {
-            cant=cant+cliente.getCuentas().size();
+            cant+=cliente.cantidadCuentas();
         }
         return cant;
     }

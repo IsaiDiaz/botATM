@@ -35,7 +35,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "";
+        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
     }
 
     @Override
@@ -211,7 +211,7 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void salida() {
-        mensaje.setText("Gracias por utilizar el servicio de BotATM !Hasta la proxima¡");
+        mensaje.setText("Gracias por utilizar el servicio de BotATM ¡Hasta la proxima!");
         ejecutarMensaje();
     }
 
@@ -312,11 +312,9 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void mensajeCrearCuenta() {
-        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente de la siguiente manera: Tipo de moneda,Tipo de cuenta\n"+
-                "Ejemplos\n"+
+        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente respetando el siguiente formato: \n"+
                 "Bolivianos,Cuenta corriente\n" +
-                "Dolares,Caja de ahorros\n"+
-                "por favor, respete el formato para evitar errores.");
+                "Dolares,Caja de ahorros\n");
         ejecutarMensaje();
     }
 
