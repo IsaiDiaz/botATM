@@ -312,7 +312,7 @@ public class BotATM extends TelegramLongPollingBot {
     }
 
     private void mensajeCrearCuenta() {
-        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta exactamente respetando el siguiente formato: \n"+
+        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta respetando el siguiente formato: \n"+
                 "Bolivianos,Cuenta corriente\n" +
                 "Dolares,Caja de ahorros\n");
         ejecutarMensaje();
