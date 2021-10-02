@@ -1,6 +1,7 @@
 package bo.edu.ucb.est;
 
 import bo.edu.ucb.est.bot.BotATM;
+import bo.edu.ucb.est.bot.botPrueba;
 import bo.edu.ucb.est.modelo.Banco;
 import bo.edu.ucb.est.modelo.Cliente;
 import bo.edu.ucb.est.modelo.Cuenta;

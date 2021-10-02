@@ -56,6 +56,7 @@ public Banco( String nombre){
         for (Cliente cliente:clientes) {
             cant+=cliente.cantidadCuentas();
         }
+        cant=cant+100000;
         return cant;
     }
 }

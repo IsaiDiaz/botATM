@@ -17,6 +17,7 @@ public class BotATM extends TelegramLongPollingBot {
     private final SendMessage mensaje= new SendMessage();
     private final Map <String,Integer> usuarios=new HashMap<>();
     private final Map<String,Cuenta> cuentaMap =new HashMap<>();
+    private final Map <String,String> monedaMap= new HashMap<>();
     //private Map <String,Cliente> clienteMap= new HashMap<>();
     //private Cliente clienteActual;
     private String nombreRegistro;
@@ -35,7 +36,7 @@ public class BotATM extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "";
+        return "2040972733:AAHasVnCXBYPkH8hRzYNxaNz80_x5PzQPcE";
     }
 
     @Override
@@ -99,7 +100,7 @@ public class BotATM extends TelegramLongPollingBot {
                     if(opcion>=1 && opcion<=3){
                         if(clienteActual.cantidadCuentas()>0) {
                             assert clienteActual != null;
-                            mostrarCuentas(clienteActual);
+                            mostrarCuentas(clienteActual);//muestra las cuentas del cliente
                             int estado = usuarios.get(id);
                             usuarios.replace(id, estado + opcion);
                         }else{
@@ -117,7 +118,7 @@ public class BotATM extends TelegramLongPollingBot {
                         despliegaMenu();
                     }
                     break;
-                case 6://Muestra cuentas para seleccionar una y ver su saldo
+                case 6://Muestra el saldo de una cuenta
                     assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
                     if(cuenta>0) {
@@ -131,7 +132,7 @@ public class BotATM extends TelegramLongPollingBot {
                         usuarios.replace(id,5);
                     }
                     break;
-                case 7: //Muestra cuentas para realizar un retiro
+                case 7: //Realiza el retiro de una cuenta
                     assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
                     if(cuenta>0) {
@@ -145,7 +146,7 @@ public class BotATM extends TelegramLongPollingBot {
                         usuarios.replace(id,5);
                     }
                     break;
-                case 8: //Muestra cuentas para realizar un deposito
+                case 8: //Realiza deposito a una cuenta
                     assert clienteActual != null;
                     cuenta=validaIngreso(mensajeDeUsuario.getText(),clienteActual.getCuentas().size());
                     if(cuenta>0){
@@ -160,11 +161,19 @@ public class BotATM extends TelegramLongPollingBot {
                     }
                     break;
                 case 9://crea una cuenta nueva
-                    String nuevaCuenta=mensajeDeUsuario.getText();
-                    assert clienteActual != null;
-                    crearCuenta(nuevaCuenta,clienteActual);
-                    usuarios.replace(id,5);
-                    despliegaMenu();
+                    int eleccion=validaIngreso(mensajeDeUsuario.getText(),2);
+                    String moneda=null;
+                    switch (eleccion){
+                        case 1:
+                        moneda="Bolivianos";
+                        break;
+                        case 2:
+                        moneda="Dolares";
+                        break;
+                    }
+                    monedaMap.put(id, moneda);
+                    mensajeTipoDeCuenta();
+                    usuarios.replace(id,12);
                     break;
                 case 10://efectua retiro
                     monto=Double.parseDouble(mensajeDeUsuario.getText());
@@ -188,16 +197,32 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,5);
                     despliegaMenu();
                     break;
-                /*case 12://efectua creacion de cuenta
-                    String nuevaCuenta=mensajeDeUsuario.getText();
-                    crearCuenta();
-                    usuarios.replace(id,5);*/
+                case 12://efectua creacion de cuenta
+                    int seleccion=validaIngreso(mensajeDeUsuario.getText(), 2);
+                    String tipoDeCuenta=null;
+                    switch(seleccion){
+                        case 1:
+                        tipoDeCuenta="Caja de ahorros";
+                        break;
+                        case 2:
+                        tipoDeCuenta="Cuenta corriente";
+                        break;
+                    }
+                    crearCuenta(monedaMap.get(id), tipoDeCuenta, clienteActual);
+                    usuarios.replace(id,5);
+                    despliegaMenu();
+                    break;
                 default:
                     usuarios.replace(id,5);
                     despliegaMenu();
                     break;
             }
         }
+    }
+
+    private void mensajeTipoDeCuenta(){
+        mensaje.setText("Seleccione el tipo de cuenta:\n1.Caja de ahorros\n2.Cuenta corriente");
+        ejecutarMensaje();
     }
 
     private void cuentaNoValida() {
@@ -304,17 +329,17 @@ public class BotATM extends TelegramLongPollingBot {
         ejecutarMensaje();
     }
 
-    private void crearCuenta(String nuevaCuenta, Cliente clienteActual) {
-        String [] datosDeCuenta=nuevaCuenta.split(",");
-        clienteActual.agregarCuenta(new Cuenta(datosDeCuenta[0],datosDeCuenta[1],(banco.numeroDeCuentas()+1)+"",0));
+    private void crearCuenta(String moneda,String tipoDeCuenta, Cliente clienteActual) {
+        clienteActual.agregarCuenta(new Cuenta(moneda,tipoDeCuenta,(banco.numeroDeCuentas()+1)+"",0));
         mensaje.setText("Cuenta creada con exito");
         ejecutarMensaje();
     }
 
     private void mensajeCrearCuenta() {
-        mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta respetando el siguiente formato: \n"+
+        /*mensaje.setText("Por favor ingrese el tipo de moneda y el tipo de cuenta respetando el siguiente formato: \n"+
                 "Bolivianos,Cuenta corriente\n" +
-                "Dolares,Caja de ahorros\n");
+                "Dolares,Caja de ahorros\n");*/
+        mensaje.setText("Seleccione la moneda:\n1.Bolivianos\n2.Dolares");
         ejecutarMensaje();
     }
 
