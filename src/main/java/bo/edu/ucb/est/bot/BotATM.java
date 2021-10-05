@@ -18,9 +18,9 @@ public class BotATM extends TelegramLongPollingBot {
     private final Map <String,Integer> usuarios=new HashMap<>();
     private final Map<String,Cuenta> cuentaMap =new HashMap<>();
     private final Map <String,String> monedaMap= new HashMap<>();
+    private final Map <String,String> nombreMap= new HashMap<>();
     //private Map <String,Cliente> clienteMap= new HashMap<>();
     //private Cliente clienteActual;
-    private String nombreRegistro;
 
     public BotATM(Banco banco){
         this.banco=banco;
@@ -64,14 +64,15 @@ public class BotATM extends TelegramLongPollingBot {
                     usuarios.replace(id,1);
                     break;
                 case 1:
-                    nombreRegistro=mensajeDeUsuario.getText();
+                    String nombreRegistro=mensajeDeUsuario.getText();
+                    nombreMap.put(id,nombreRegistro);
                     mensajeRegistroPin();
                     usuarios.replace(id,2);
                     break;
                 case 2:
                     String pinRegistro = mensajeDeUsuario.getText();
-                    registroCliente(id, pinRegistro,nombreRegistro);
-                    nombreRegistro=null;
+                    registroCliente(id, pinRegistro,nombreMap.get(id));
+                    nombreMap.remove(id);
                     mensajeRegistroExitoso();
                     usuarios.replace(id,3);
                     break;
@@ -96,6 +97,7 @@ public class BotATM extends TelegramLongPollingBot {
                     }
                     break;
                 case 5://Recibe la opcion seleccionada por el cliente y actualiza su estado para procesarla
+                    cuentaMap.remove(id);
                     int opcion=validaIngreso(mensajeDeUsuario.getText(),5);
                     if(opcion>=1 && opcion<=3){
                         if(clienteActual.cantidadCuentas()>0) {
@@ -209,6 +211,7 @@ public class BotATM extends TelegramLongPollingBot {
                         break;
                     }
                     crearCuenta(monedaMap.get(id), tipoDeCuenta, clienteActual);
+                    monedaMap.remove(id);
                     usuarios.replace(id,5);
                     despliegaMenu();
                     break;
