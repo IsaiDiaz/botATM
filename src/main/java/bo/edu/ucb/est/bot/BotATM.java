@@ -100,8 +100,8 @@ public class BotATM extends TelegramLongPollingBot {
                     cuentaMap.remove(id);
                     int opcion=validaIngreso(mensajeDeUsuario.getText(),5);
                     if(opcion>=1 && opcion<=3){
+                        assert clienteActual != null;
                         if(clienteActual.cantidadCuentas()>0) {
-                            assert clienteActual != null;
                             mostrarCuentas(clienteActual);//muestra las cuentas del cliente
                             int estado = usuarios.get(id);
                             usuarios.replace(id, estado + opcion);
@@ -164,62 +164,104 @@ public class BotATM extends TelegramLongPollingBot {
                     break;
                 case 9://crea una cuenta nueva
                     int eleccion=validaIngreso(mensajeDeUsuario.getText(),2);
-                    String moneda=null;
+                    String moneda;
                     switch (eleccion){
                         case 1:
-                        moneda="Bolivianos";
-                        break;
+                            moneda="Bolivianos";
+                            monedaMap.put(id, moneda);
+                            mensajeTipoDeCuenta();
+                            usuarios.replace(id,12);
+                            break;
                         case 2:
-                        moneda="Dolares";
-                        break;
+                            moneda="Dolares";
+                            monedaMap.put(id, moneda);
+                            mensajeTipoDeCuenta();
+                            usuarios.replace(id,12);
+                            break;
+                        default:
+                            error();
+                            despliegaMenu();
+                            usuarios.replace(id,5);
+                            break;
                     }
-                    monedaMap.put(id, moneda);
-                    mensajeTipoDeCuenta();
-                    usuarios.replace(id,12);
                     break;
                 case 10://efectua retiro
-                    monto=Double.parseDouble(mensajeDeUsuario.getText());
-                    c= cuentaMap.get(id);
-                    if(c.retirar(monto)){
-                        exitoRetiro();
+                    //monto=Double.parseDouble(mensajeDeUsuario.getText());
+                    monto=validaIngresoDouble(mensajeDeUsuario.getText());
+                    if(monto>0){
+                        c= cuentaMap.get(id);
+                        if(c.retirar(monto)){
+                            exitoRetiro();
+                        }else{
+                            falloTransaccion();
+                        }
+                        usuarios.replace(id,5);
+                        despliegaMenu();
                     }else{
-                        falloTransaccion();
+                        usuarios.replace(id,5);
+                        error();
+                        despliegaMenu();
                     }
-                    usuarios.replace(id,5);
-                    despliegaMenu();
                     break;
                 case 11://efectua deposito
-                    monto=Double.parseDouble(mensajeDeUsuario.getText());
-                    c= cuentaMap.get(id);
-                    if(c.depositar(monto)){
-                        exitoDeposito();
+                    //monto=Double.parseDouble(mensajeDeUsuario.getText());
+                    monto=validaIngresoDouble(mensajeDeUsuario.getText());
+                    if(monto>0){
+                        c= cuentaMap.get(id);
+                        if(c.depositar(monto)){
+                            exitoDeposito();
+                        }else{
+                            falloTransaccion();
+                        }
+                        usuarios.replace(id,5);
+                        despliegaMenu();
                     }else{
-                        falloTransaccion();
+                        usuarios.replace(id,5);
+                        error();
+                        despliegaMenu();
                     }
-                    usuarios.replace(id,5);
-                    despliegaMenu();
                     break;
                 case 12://efectua creacion de cuenta
                     int seleccion=validaIngreso(mensajeDeUsuario.getText(), 2);
-                    String tipoDeCuenta=null;
+                    String tipoDeCuenta;
                     switch(seleccion){
                         case 1:
-                        tipoDeCuenta="Caja de ahorros";
-                        break;
+                            tipoDeCuenta="Caja de ahorros";
+                            assert clienteActual != null;
+                            crearCuenta(monedaMap.get(id), tipoDeCuenta, clienteActual);
+                            monedaMap.remove(id);
+                            usuarios.replace(id,5);
+                            despliegaMenu();
+                            break;
                         case 2:
-                        tipoDeCuenta="Cuenta corriente";
-                        break;
+                            tipoDeCuenta="Cuenta corriente";
+                            assert clienteActual != null;
+                            crearCuenta(monedaMap.get(id), tipoDeCuenta, clienteActual);
+                            monedaMap.remove(id);
+                            usuarios.replace(id,5);
+                            despliegaMenu();
+                            break;
+                        default:
+                            error();
+                            despliegaMenu();
+                            monedaMap.remove(id);
+                            usuarios.replace(id,5);
+                            break;
                     }
-                    crearCuenta(monedaMap.get(id), tipoDeCuenta, clienteActual);
-                    monedaMap.remove(id);
-                    usuarios.replace(id,5);
-                    despliegaMenu();
                     break;
                 default:
                     usuarios.replace(id,5);
                     despliegaMenu();
                     break;
             }
+        }
+    }
+
+    private double validaIngresoDouble(String text) {
+        try{
+            return Double.parseDouble(text);
+        }catch (Exception e){
+            return -1;
         }
     }
 
@@ -318,6 +360,7 @@ public class BotATM extends TelegramLongPollingBot {
             execute(mensaje);
             System.out.println("Respondiendo con: "+mensaje.getText());
         }catch(TelegramApiException e){
+
             e.printStackTrace();
         }
     }
